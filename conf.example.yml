@@ -1,0 +1,10 @@
+qiniu:
+  ACCESS_KEY: xx
+  SECRET_KEY: xx
+  BUCKET_NAME: xx
+
+path:
+  # 要扫描的本地文件夹
+  RES_DIR: xx
+  # 定义正则 匹配所需文件名
+  PATTERN: .*\.png$|.*\.jpg$|.*\.mp4$
