@@ -7,4 +7,8 @@ path:
   # 要扫描的本地文件夹
   RES_DIR: xx
   # 定义正则 匹配所需文件名
-  PATTERN: .*\.png$|.*\.jpg$|.*\.mp4$
+  PATTERN_FILENAME: .*
+  # 定义正则 匹配所需文件路径
+  PATTERN_FILEPATH: .*
+  # 定义正则 排除匹配的文件
+  PATTERN_IGNOREFILE: \.DS_Store$

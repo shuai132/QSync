@@ -16,7 +16,9 @@ func main() {
 	bucketName := config["qiniu"]["BUCKET_NAME"]
 
 	resDir := config["path"]["RES_DIR"]
-	regex, _ := regexp.Compile(config["path"]["PATTERN"])
+	regexFileName, _ := regexp.Compile(config["path"]["PATTERN_FILENAME"])
+	regexFilePath, _ := regexp.Compile(config["path"]["PATTERN_FILEPATH"])
+	regexIgnoreFile, _ := regexp.Compile(config["path"]["PATTERN_IGNOREFILE"])
 
 	log.Println("本地资源目录:", resDir)
 
@@ -27,11 +29,17 @@ func main() {
 		}
 
 		fileName := filepath.Base(fullPath)
-		if !regex.MatchString(fileName) {
+		relativePath := fullPath[len(resDir) + 1:]
+
+		if !regexFileName.MatchString(fileName) {
 			return nil
 		}
-
-		relativePath := fullPath[len(resDir) + 1:]
+		if !regexFilePath.MatchString(relativePath) {
+			return nil
+		}
+		if regexIgnoreFile.MatchString(fileName) {
+			return nil
+		}
 
 		upload := qiniu.UploadIfChanged(fullPath, bucketName, relativePath, accessKey, secretKey)
 		if upload {
