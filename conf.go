@@ -8,12 +8,12 @@ import (
 
 type Conf map[string]map[string]string
 
-func GetConf() Conf {
+func GetConf(filePath string) Conf {
 	conf := make(Conf)
-	if yamlFile, err := ioutil.ReadFile("conf.yml"); err != nil {
+	if yamlFile, err := ioutil.ReadFile(filePath); err != nil {
 		log.Fatalln("配置文件读取错误", err)
 	} else {
-		yaml.Unmarshal(yamlFile, &conf)
+		_ = yaml.Unmarshal(yamlFile, &conf)
 	}
 	return conf
 }

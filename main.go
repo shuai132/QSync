@@ -2,6 +2,7 @@ package main
 
 import (
 	"./qiniu"
+	"./utils"
 	"log"
 	"os"
 	"path/filepath"
@@ -9,7 +10,7 @@ import (
 )
 
 func main() {
-	config := GetConf()
+	config := GetConf(utils.GetFullPath("./conf.yml"))
 
 	accessKey := config["qiniu"]["ACCESS_KEY"]
 	secretKey := config["qiniu"]["SECRET_KEY"]
