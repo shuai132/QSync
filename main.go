@@ -9,6 +9,11 @@ import (
 	"regexp"
 )
 
+func uploadFunc(ch chan bool, fullPath string, bucketName string, relativePath string, accessKey string, secretKey string) {
+	success := qiniu.UploadIfChanged(fullPath, bucketName, relativePath, accessKey, secretKey)
+	ch <- success
+}
+
 func main() {
 	config := GetConf(utils.GetFullPath("./conf.yml"))
 
@@ -23,7 +28,8 @@ func main() {
 
 	log.Println("本地资源目录:", resDir)
 
-	uploadCount := 0
+	ch := make(chan bool)
+	goroutineCount := 0
 	filepath.Walk(resDir, func(fullPath string, info os.FileInfo, err error) error {
 		if info == nil || info.IsDir() {
 			return nil
@@ -42,11 +48,18 @@ func main() {
 			return nil
 		}
 
-		upload := qiniu.UploadIfChanged(fullPath, bucketName, relativePath, accessKey, secretKey)
-		if upload {
-			uploadCount++
-		}
+		go uploadFunc(ch, fullPath, bucketName, relativePath, accessKey, secretKey)
+		goroutineCount++
 		return nil
 	})
+
+	uploadCount := 0
+	for goroutineCount > 0 {
+		goroutineCount--
+		flag := <-ch
+		if flag {
+			uploadCount++
+		}
+	}
 	log.Println("同步完成: 上传文件数量:", uploadCount)
 }
