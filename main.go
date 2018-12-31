@@ -3,16 +3,12 @@ package main
 import (
 	"./qiniu"
 	"./utils"
+	"github.com/qiniu/api.v7/auth/qbox"
 	"log"
 	"os"
 	"path/filepath"
 	"regexp"
 )
-
-func uploadFunc(ch chan bool, fullPath string, bucketName string, relativePath string, accessKey string, secretKey string) {
-	success := qiniu.UploadIfChanged(fullPath, bucketName, relativePath, accessKey, secretKey)
-	ch <- success
-}
 
 func main() {
 	config := GetConf(utils.GetFullPath("./conf.yml"))
@@ -20,6 +16,7 @@ func main() {
 	accessKey := config["qiniu"]["ACCESS_KEY"]
 	secretKey := config["qiniu"]["SECRET_KEY"]
 	bucketName := config["qiniu"]["BUCKET_NAME"]
+	mac := qbox.NewMac(accessKey, secretKey)
 
 	resDir := config["path"]["RES_DIR"]
 	regexFileName, _ := regexp.Compile(config["path"]["PATTERN_FILENAME"])
@@ -36,7 +33,7 @@ func main() {
 		}
 
 		fileName := filepath.Base(fullPath)
-		relativePath := fullPath[len(resDir) + 1:]
+		relativePath := fullPath[len(resDir)+1:]
 
 		if !regexFileName.MatchString(fileName) {
 			return nil
@@ -48,16 +45,17 @@ func main() {
 			return nil
 		}
 
-		go uploadFunc(ch, fullPath, bucketName, relativePath, accessKey, secretKey)
+		go func() {
+			ch <- qiniu.UploadIfChanged(mac, bucketName, relativePath, fullPath)
+		}()
+
 		goroutineCount++
 		return nil
 	})
 
 	uploadCount := 0
-	for goroutineCount > 0 {
-		goroutineCount--
-		flag := <-ch
-		if flag {
+	for ; goroutineCount > 0; goroutineCount-- {
+		if <-ch {
 			uploadCount++
 		}
 	}
