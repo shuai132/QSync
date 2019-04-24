@@ -10,8 +10,8 @@ import (
 
 func Upload(mac *qbox.Mac, bucket string, key string, localFile string) bool {
 	log.Println("上传文件:", localFile)
-	putPolicy := storage.PutPolicy{
-		Scope: bucket,
+	putPolicy := storage.PutPolicy {
+		Scope: bucket + ":" + key,
 	}
 	upToken := putPolicy.UploadToken(mac)
 	formUploader := storage.NewFormUploader(nil)
@@ -19,7 +19,7 @@ func Upload(mac *qbox.Mac, bucket string, key string, localFile string) bool {
 
 	err := formUploader.PutFile(context.Background(), &ret, upToken, key, localFile, nil)
 	if err != nil {
-		log.Println(err)
+		log.Println("上传出错", err, localFile)
 		return false
 	}
 	log.Println("上传成功", ret.Key, ret.Hash)
